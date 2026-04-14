@@ -1,0 +1,23 @@
+# Multi-Object Detection & Persistent ID Tracking Pipeline
+# ────────────────────────────────────────────────────────
+# Tested with Python 3.9-3.11
+
+# Core Computer Vision
+ultralytics>=8.1.0        # YOLO11 detection + ByteTrack/BoT-SORT tracking
+opencv-python>=4.8.0      # Video I/O, image processing, visualization
+numpy>=1.24.0             # Numerical operations
+
+# Tracking (DeepSORT comparison)
+deep-sort-realtime>=1.3.2 # DeepSORT with real-time Re-ID embeddings
+
+# Video Acquisition
+yt-dlp>=2024.1.0          # YouTube video download
+
+# Utilities
+tqdm>=4.65.0              # Progress bars (used internally by ultralytics)
+matplotlib>=3.7.0         # Heatmap colormap rendering
+scipy>=1.10.0             # Scientific computing utilities
+
+# PyTorch (CUDA) — install separately for GPU support:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Note: Ultralytics will install a CPU-only torch if no GPU version detected.

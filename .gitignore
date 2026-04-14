@@ -1,0 +1,57 @@
+# ──────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+
+# ──────────────────────────────────────────────
+# YOLO model weights (auto-downloaded at runtime)
+# ──────────────────────────────────────────────
+*.pt
+*.onnx
+*.engine
+
+# ──────────────────────────────────────────────
+# Video files (too large for Git)
+# ──────────────────────────────────────────────
+input/*.mp4
+input/*.mkv
+input/*.avi
+input/*.webm
+
+# ──────────────────────────────────────────────
+# Output files (generated at runtime)
+# ──────────────────────────────────────────────
+outputs/*.mp4
+outputs/*.avi
+outputs/pipeline.log
+
+# Keep sample outputs for demonstration
+!outputs/movement_heatmap.png
+!outputs/tracking_statistics.json
+
+# ──────────────────────────────────────────────
+# IDE & OS
+# ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ──────────────────────────────────────────────
+# Ultralytics
+# ──────────────────────────────────────────────
+runs/
