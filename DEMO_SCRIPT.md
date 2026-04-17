@@ -1,143 +1,214 @@
-# Demo Video Script — Multi-Object Detection & Persistent ID Tracking
+# 🎬 Loom Video Script — Multi-Object Detection & Persistent ID Tracking
 
-**Duration**: 3–5 minutes
-**Format**: Screen recording with narration
-**Target Audience**: Technical evaluators (beginner-friendly but technically strong)
-
----
-
-## SLIDE 1: Title & Introduction [0:00 – 0:30]
-
-**[Show: Project title slide / terminal with project banner]**
-
-> "Hi, I'm Aditya Negi. Today I'll walk you through my Multi-Object Detection and Persistent ID Tracking pipeline — a production-quality computer vision system that detects and tracks football players in real FIFA World Cup footage."
->
-> "The system uses YOLO11 for detection and ByteTrack for persistent ID assignment, and handles real-world challenges like occlusion, camera motion, and players wearing identical jerseys."
+**Total Duration**: 4–5 minutes
+**Format**: Loom screen recording with face cam
+**Tip**: Keep Loom face cam in bottom-left corner, share full screen
 
 ---
 
-## SLIDE 2: Problem Statement & Challenges [0:30 – 1:00]
+## 🟢 INTRO — Who Am I & What Did I Build [0:00 – 0:25]
 
-**[Show: Raw video clip — highlight problem areas with annotations]**
+**[Screen: GitHub repo page, README visible]**
 
-> "Let me show you the actual video we're working with — Portugal vs Spain from the 2018 World Cup."
+> "Hey! I'm Aditya Negi, and in this video I'll walk you through my Multi-Object Detection and Persistent ID Tracking pipeline."
 >
-> "Why is tracking players hard? Look at these challenges:"
-> - **[Point to cluster]** "Multiple players overlapping — causing occlusion"
-> - **[Point to camera pan]** "Camera is constantly panning — objects move in frame even when standing still"
-> - **[Point to same-jersey players]** "These players wear identical jerseys — traditional appearance models can't tell them apart"
-> - **[Point to distant players]** "Scale variation — some players are 200 pixels tall, others are just 30"
+> "This is a computer vision system that detects and tracks football players in live FIFA World Cup footage — assigning each player a unique, persistent ID that survives occlusion, camera cuts, and fast motion."
 >
-> "My pipeline handles all of these. Let me show you how."
+> "Let me show you what it does and how it works."
 
 ---
 
-## SLIDE 3: Architecture Overview [1:00 – 1:45]
+## 🟢 THE PROBLEM [0:25 – 0:55]
 
-**[Show: Architecture diagram from README]**
+**[Screen: Open the raw clip in a video player — `input/clip_90s.mp4`]**
+*(If clip isn't available, show the YouTube video briefly)*
 
-> "Here's the pipeline architecture. It's a modular system with six main components:"
+> "Here's the raw footage — Portugal versus Spain from the 2018 World Cup."
 >
-> 1. "**Video acquisition**: yt-dlp downloads the video, ffmpeg trims a 90-second clip"
-> 2. "**Detection**: YOLO11m detects all persons with GPU-accelerated inference"
-> 3. "**Tracking**: ByteTrack associates detections across frames with persistent IDs"
-> 4. "**Analytics**: Calculates trajectories, heatmaps, speed, and player counts"
-> 5. "**Visualization**: Renders annotated frames with colored bounding boxes and trails"
-> 6. "**Output**: Saves annotated video, statistics JSON, and heatmap image"
+> "Now, tracking players sounds simple, but look at the challenges:"
 >
-> "Everything is configurable through a central config file and CLI arguments."
+> **[Point/circle with mouse as you mention each]**
+>
+> "First — **occlusion**. Players constantly overlap and block each other."
+>
+> "Second — **same jerseys**. All teammates look identical to a computer."
+>
+> "Third — the **camera never stops moving** — it pans, zooms, and cuts to replays."
+>
+> "And fourth — **scale variation** — some players are 200 pixels tall, others are barely 30."
+>
+> "Traditional appearance-based trackers completely fail here. My solution handles all of these."
 
 ---
 
-## SLIDE 4: Why YOLO11 + ByteTrack? [1:45 – 2:30]
+## 🟢 THE SOLUTION — Architecture [0:55 – 1:40]
 
-**[Show: Comparison table from README]**
+**[Screen: Scroll to the Architecture section in README.md]**
 
-> "A critical design decision: why YOLO11m over YOLOv8m?"
+> "Here's the pipeline architecture. It's modular — six components, each with a single responsibility."
 >
-> "YOLO11m has 20 million parameters versus YOLOv8m's 26 million — that's 23% fewer parameters. On our RTX 3050 with just 6 gigs of VRAM, that matters. It also has a C2PSA attention module that specifically helps with crowded scenes."
+> **[Point to each module as you mention it]**
 >
-> "For tracking, I chose ByteTrack over DeepSORT, and here's the counterintuitive reason:"
+> "Step one — **Video Acquisition**. The pipeline automatically downloads the match from YouTube using yt-dlp, then trims a 90-second clip using ffmpeg. If ffmpeg isn't installed, it falls back to OpenCV — so it works everywhere."
 >
-> "DeepSORT uses an appearance model — a CNN that extracts visual features to recognize people. Sounds great, right? But in football, all teammates wear the SAME jersey. The appearance model can't distinguish them. It actually adds noise to the matching process."
+> "Step two — **Detection**. I'm using **YOLO11m** — not YOLOv8 — YOLO **11**. It has 23% fewer parameters, lower VRAM usage, and a new attention module called C2PSA that specifically helps in crowded scenes."
 >
-> "ByteTrack uses pure motion — Kalman filter prediction plus IoU matching. It's simpler, faster, and more robust for this exact scenario."
->
-> "ByteTrack also has a killer feature: two-stage association. High-confidence detections get matched first, then low-confidence detections rescue tracks that would otherwise be lost during occlusion."
+> "Step three — **Tracking**. This is where it gets interesting."
 
 ---
 
-## SLIDE 5: Live Demo — Running the Pipeline [2:30 – 3:30]
+## 🟢 KEY DESIGN DECISION — Why ByteTrack [1:40 – 2:20]
 
-**[Show: Terminal — run the pipeline]**
+**[Screen: Scroll to Design Decisions table in README]**
 
-> "Let me run this live. I'll execute: `python main.py`"
+> "I chose **ByteTrack** over DeepSORT, and here's the counterintuitive reason."
 >
-> **[Show pipeline running]**
+> "DeepSORT uses a neural network to extract appearance features — what a person *looks like* — to match them across frames. That's great for pedestrians who all wear different clothes."
 >
-> "You can see it's initializing YOLO11m on CUDA, loading the video, and now processing frames."
+> "But in football? All teammates wear the **exact same jersey**. The appearance model can't tell them apart — it actually adds *noise* to the matching and causes *more* ID switches."
 >
-> "Notice the FPS counter — we're getting about 28 frames per second on the RTX 3050. That's near real-time."
+> "ByteTrack uses **pure motion** — Kalman filter prediction plus IoU matching. No appearance, no confusion."
 >
-> **[Switch to output video playing]**
+> "But the real killer feature is **two-stage association**:"
 >
-> "Here's the output. Each player has a unique colored bounding box with a persistent ID. Watch as this player" **[point]** "moves behind another — the ID stays the same."
+> "Stage one matches high-confidence detections. Stage two takes the *unmatched* tracks and tries to rescue them using low-confidence detections — the partially occluded players that other trackers would just lose."
 >
-> "The trajectory trails show recent movement paths. The dashboard in the corner shows active players, unique IDs, and FPS."
->
-> **[Show a scene cut moment]**
->
-> "Notice when the camera cuts to a replay — the system detects the scene change and resets all tracks. This prevents IDs from one scene bleeding into another."
+> "This is what makes it robust under real-world occlusion."
 
 ---
 
-## SLIDE 6: Advanced Features [3:30 – 4:15]
+## 🟢 LIVE DEMO — Running the Pipeline [2:20 – 3:20]
 
-**[Show: Output files and heatmap]**
+**[Screen: Switch to terminal in VS Code]**
 
-> "Beyond basic tracking, the system computes five advanced analytics:"
+> "Let me run it live."
+
+**[Type and run]:**
+```
+python main.py --skip-download --no-display
+```
+
+> "I'm using `--skip-download` since I already have the video, and `--no-display` for cleaner recording."
 >
-> 1. **[Show trajectory trails]** "Trajectory visualization — gradient-faded path lines for each player"
-> 2. **[Show player count]** "Player counting — unique IDs across the entire clip, plus per-frame active count"
-> 3. **[Show heatmap image]** "Movement heatmap — you can see the high-activity areas of the pitch"
-> 4. **[Show speed label]** "Speed estimation — approximate player velocity in km/h"
-> 5. **[Show JSON file]** "Frame-wise statistics — exported as JSON for downstream analysis"
+> **[Wait for initialization to show]**
 >
-> "The heatmap is particularly interesting — you can clearly see the midfield concentration and attacking movements."
+> "You can see it initializes YOLO11m, sets up ByteTrack, and starts processing frames."
+>
+> "Look at the live stats — it's detecting 10 to 16 players per frame, running at about 3 to 5 FPS on CPU. On a CUDA GPU like the RTX 3050, this would be 25 to 35 FPS — near real-time."
+
+**[Let it run for ~15 seconds showing progress, then switch to output]**
+
+> "Let me show you the output."
+
+**[Screen: Open `outputs/tracked_bytetrack.mp4` in a video player]**
+
+> "Each player has a **unique colored bounding box** with a persistent ID number."
+>
+> **[Point to specific things as the video plays]**
+>
+> "Watch this player move — the ID stays consistent. See the **trajectory trails** following each player's movement path."
+>
+> "And in the top corner, there's a live dashboard showing active players, unique IDs, and FPS."
+>
+> **[If a scene cut is visible]**
+> "Notice when the camera cuts to a replay — the system detects the scene change using histogram analysis and resets all tracks. This prevents IDs from bleeding across unrelated scenes."
 
 ---
 
-## SLIDE 7: Edge Cases & Comparison [4:15 – 4:45]
+## 🟢 ADVANCED ANALYTICS [3:20 – 3:50]
 
-**[Show: Comparison mode results — if run with --compare]**
+**[Screen: Show `outputs/movement_heatmap.png`]**
 
-> "I also built a comparison mode: `python main.py --compare`"
+> "Beyond tracking, the system computes **five advanced analytics**:"
 >
-> "This runs both ByteTrack and DeepSORT on the same clip. The results confirm our hypothesis — ByteTrack is about 40% faster and shows fewer ID switches in this sports scenario."
+> "One — **trajectory visualization** with gradient-fade trails."
 >
-> "Key edge cases handled:"
-> - "Scene cuts detected via histogram analysis — tracker resets automatically"
-> - "Small/false detections filtered by minimum area and aspect ratio"
-> - "Occlusion handled by keeping lost tracks for 30 frames"
+> "Two — **player counting** — both unique IDs and active count per frame."
+>
+> "Three — this **movement heatmap** showing where players spend the most time. You can clearly see the midfield concentration."
+>
+> "Four — **speed estimation** in kilometers per hour for each player."
+
+**[Screen: Open `outputs/tracking_statistics.json` briefly]**
+
+> "And five — **frame-wise statistics** exported as JSON for downstream analysis."
 
 ---
 
-## SLIDE 8: Conclusion & Future Work [4:45 – 5:00]
+## 🟢 RESULTS & NUMBERS [3:50 – 4:15]
 
-**[Show: Summary slide]**
+**[Screen: Show the analytics summary from terminal or README]**
 
-> "To summarize: YOLO11m + ByteTrack achieves robust, real-time player tracking at 25-35 FPS on consumer hardware. The modular architecture makes it easy to swap models or trackers."
+> "Here are the final numbers from our test run:"
 >
-> "Future improvements would include sport-specific Re-ID models, homography-based speed estimation, and team classification using jersey colors."
+> "**1,420 frames** processed from a 90-second clip"
 >
-> "Thank you for watching. The full source code, documentation, and technical report are included in the submission."
+> "**10.9 average players** detected per frame, with a max of **18 simultaneous**"
+>
+> "And all of this with a clean, modular codebase — eight Python files, full CLI with `--help`, and comprehensive documentation."
+
+**[Screen: Show the GitHub repo — scroll through files briefly]**
+
+> "The entire pipeline runs with a single command — `python main.py`. It downloads the video, downloads the model, processes everything, and generates the output. Zero manual steps."
 
 ---
 
-## Recording Tips
+## 🟢 WHAT MAKES THIS STAND OUT [4:15 – 4:40]
 
-1. **Screen setup**: Use a resolution of 1920×1080, dark terminal theme
-2. **Recording tool**: OBS Studio (free) or PowerPoint screen recording
-3. **Audio**: Use a quiet room, speak clearly and at moderate pace
-4. **Demo sections**: Pre-run the pipeline once to download models and video, so the live demo is smooth
-5. **Time management**: Practice once to hit the 3-5 minute target
+**[Screen: GitHub README — scroll to Edge Case Handling table]**
+
+> "Three things make this production-quality:"
+>
+> "**One** — it's not just detect-and-track. It handles edge cases: scene cuts reset the tracker, false positives are filtered by area and aspect ratio, and occlusion is handled by ByteTrack's two-stage rescue."
+>
+> "**Two** — it's hardware-aware. It auto-detects CUDA, enables FP16 for double throughput, and gracefully falls back to CPU."
+>
+> "**Three** — it includes a full comparison mode. Run `python main.py --compare` and it benchmarks ByteTrack against DeepSORT on the same clip, with a side-by-side results table."
+
+---
+
+## 🟢 CLOSING [4:40 – 5:00]
+
+**[Screen: GitHub repo main page]**
+
+> "So to summarize — YOLO11m for detection, ByteTrack for tracking, with scene cut handling, five analytics features, and a one-command pipeline that works out of the box."
+>
+> "The code, documentation, and technical report are all in the GitHub repo linked below."
+>
+> "Thanks for watching!"
+
+---
+
+# 📝 Pre-Recording Checklist
+
+Before hitting record on Loom:
+
+- [ ] **Terminal ready**: `cd` to the project directory
+- [ ] **Video player ready**: Have the output video file accessible (run the pipeline once before recording if needed)
+- [ ] **GitHub repo open**: Have the repo page loaded in a browser tab
+- [ ] **Clean desktop**: Close unnecessary windows
+- [ ] **Dark theme**: Use VS Code dark theme + dark terminal for professional look
+- [ ] **Font size**: Increase terminal and editor font to 16-18px so Loom captures it clearly
+- [ ] **Tab order**: Arrange tabs in presentation order: GitHub → Terminal → Video Player → Heatmap
+
+# 🎯 Key Points to Emphasize
+
+1. **"YOLO11, not YOLOv8"** — Shows you're using the latest, not just the popular one
+2. **"ByteTrack over DeepSORT because of same jerseys"** — Shows deep understanding, not just plugging libraries
+3. **"Two-stage association for occlusion rescue"** — The technical differentiator
+4. **"One command to run everything"** — Production quality, not a notebook hack
+5. **"Scene cut detection resets tracker"** — Shows you thought about real-world edge cases
+
+# ⏱ Timing Summary
+
+| Section | Duration | Cumulative |
+|---------|----------|------------|
+| Intro | 25s | 0:25 |
+| Problem | 30s | 0:55 |
+| Architecture | 45s | 1:40 |
+| ByteTrack Decision | 40s | 2:20 |
+| Live Demo | 60s | 3:20 |
+| Analytics | 30s | 3:50 |
+| Results | 25s | 4:15 |
+| Standout Points | 25s | 4:40 |
+| Closing | 20s | 5:00 |
